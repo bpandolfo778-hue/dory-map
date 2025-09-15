@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Dory MVP Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Arial, sans-serif; margin: 40px; }
+    .card { max-width: 560px; border: 1px solid #eee; border-radius: 12px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+    input, button { font-size: 16px; padding: 10px 12px; border-radius: 8px; border: 1px solid #ddd; }
+    button { cursor: pointer; }
+    .row { display: flex; gap: 12px; align-items: center; }
+    .mt { margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>🔥 Dory MVP — Test Page</h2>
+    <p>Create a session, connect Google, scan Gmail, and create a test event.</p>
+
+    <div class="mt">
+      <label>Email for session:</label><br>
+      <input id="email" type="email" placeholder="you@example.com" style="width:100%" />
+      <div class="row mt">
+        <button onclick="signup()">Create Session</button>
+        <span id="signupStatus"></span>
+      </div>
+    </div>
+
+    <div class="mt">
+      <button onclick="connectGoogle()">Connect Google (Gmail + Calendar)</button>
+    </div>
+
+    <div class="mt">
+      <button onclick="scan()">Scan Gmail (past 7 days)</button>
+      <pre id="scanOut" style="white-space:pre-wrap"></pre>
+    </div>
+
+    <div class="mt">
+      <button onclick="createEvent()">Create Test Event</button>
+      <pre id="eventOut" style="white-space:pre-wrap"></pre>
+    </div>
+  </div>
+
+  <script>
+    async function signup() {
+      const email = document.getElementById('email').value.trim();
+      if (!email) return alert('Enter an email');
+      const res = await fetch('/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      document.getElementById('signupStatus').textContent = res.ok ? '✓ Session created' : '× Error';
+    }
+    function connectGoogle() { window.location.href = '/auth/google'; }
+    async function scan() {
+      const res = await fetch('/gmail/scan'); const text = await res.text();
+      document.getElementById('scanOut').textContent = text;
+    }
+    async function createEvent() {
+      const body = {
+        title: 'Dory Test Meeting',
+        starts_at: new Date(Date.now() + 3600*1000).toISOString(),
+        ends_at: new Date(Date.now() + 5400*1000).toISOString(),
+        attendees: []
+      };
+      const res = await fetch('/calendar/create', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const text = await res.text();
+      document.getElementById('eventOut').textContent = text;
+    }
+  </script>
+</body>
+</html>
